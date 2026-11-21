@@ -4,7 +4,7 @@ Loops VFX para Zutros Steak Bar & Lounge, para Resolume Arena.
 
 ![Vista previa](vista_previa.jpg)
 
-> Los archivos **HAP (.mov)** para el show están en la sección **Releases** de este repo (pesan más de 100 MB, que es el límite de GitHub por archivo). Aquí están los MP4 de vista previa en `previews_mp4/`.
+> Los archivos **HAP (.mov)** para el show van en la sección **Releases** de este repo, porque pesan más de 100 MB y GitHub no acepta archivos tan grandes dentro del repo. Aquí están los MP4 de vista previa en `previews_mp4/`.
 
 ## Cómo cargarlos en Resolume Arena
 
