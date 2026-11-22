@@ -1,7 +1,8 @@
 <#
   Instalador de VFX para Resolume Arena
   -------------------------------------
-  1 = Oasis   2 = Zutros   3 = Quitar el actualizador automatico
+  WACHDOG - instalador y actualizador de VFX para Resolume
+  1 = Oasis   2 = Zutros   3 = Quitar Wachdog (el actualizador automatico)
 
   - Baja del repo hugo860/Vfx-zutros TODO lo que haya HOY en la carpeta elegida (oasis/ o zutros/):
       * los HAP de <carpeta>/HAP_Resolume se unen (.parte00, .parte01...) y quedan en
@@ -31,7 +32,8 @@ param(
     [switch]$Actualizar,
     [switch]$Desinstalar,
     [switch]$SinActualizador,
-    [switch]$OlvidarToken
+    [switch]$OlvidarToken,
+    [string]$Lanzador = ''          # ruta de Wachdog.exe cuando el instalador lo abre el .exe
 )
 
 $ErrorActionPreference = 'Stop'
@@ -313,20 +315,21 @@ function Sincronizar-Cliente([string]$Cliente, [string]$Base, [string]$tok, $arb
 }
 
 # ---------------------------------------------------------------- actualizador automatico (icono en la bandeja)
-$NombreRun = 'VFX_Resolume_Actualizador'
+$NombreRun = 'Wachdog'
+$NombresRunViejos = @('VFX_Resolume_Actualizador')
 $ClaveRun = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 
 function Detener-Actualizador {
     if (-not $EsWindows) { return }
     try {
-        Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
-            Where-Object { $_.CommandLine -like '*VFX_Actualizador.ps1*' } |
+        Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProcessId -ne $PID -and ($_.CommandLine -like '*VFX_Actualizador.ps1*' -or $_.CommandLine -like '*Wachdog*--segundo-plano*') } |
             ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     } catch {}
 }
 
 function Instalar-Actualizador([string]$ref) {
-    Titulo 'Instalando el actualizador automatico'
+    Titulo 'Instalando Wachdog (actualizador automatico)'
     New-Item -ItemType Directory -Force -Path $CarpetaConfig | Out-Null
     $app = Join-Path $CarpetaConfig 'VFX_Actualizador.ps1'
     $ins = Join-Path $CarpetaConfig 'Instalar_VFX_Resolume.ps1'
@@ -338,22 +341,40 @@ function Instalar-Actualizador([string]$ref) {
     }
     if (-not $EsWindows) { Ok "Archivos copiados a $CarpetaConfig (el icono solo funciona en Windows)."; return }
 
-    $cmd = "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$app`""
-    New-ItemProperty -Path $ClaveRun -Name $NombreRun -Value $cmd -PropertyType String -Force | Out-Null
     Detener-Actualizador
-    Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', "`"$app`"")
-    Ok 'Listo: hay un icono nuevo junto al reloj (puede estar en la flechita ^).'
+    foreach ($v in $NombresRunViejos) { Remove-ItemProperty -Path $ClaveRun -Name $v -ErrorAction SilentlyContinue }
+    if ($Lanzador -and (Test-Path -LiteralPath $Lanzador)) {
+        # Wachdog.exe se copia a %LOCALAPPDATA%\VFX_Resolume y arranca con Windows en segundo plano
+        $exe = Join-Path $CarpetaConfig 'Wachdog.exe'
+        if ((Resolve-Path -LiteralPath $Lanzador).Path -ne $exe) {
+            Start-Sleep -Milliseconds 500
+            try { Copy-Item -LiteralPath $Lanzador -Destination $exe -Force } catch { Aviso "No pude copiar Wachdog.exe: $($_.Exception.Message)" }
+        }
+        New-ItemProperty -Path $ClaveRun -Name $NombreRun -Value "`"$exe`" --segundo-plano" -PropertyType String -Force | Out-Null
+        Start-Process -FilePath $exe -ArgumentList '--segundo-plano'
+    } else {
+        $cmd = "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$app`""
+        New-ItemProperty -Path $ClaveRun -Name $NombreRun -Value $cmd -PropertyType String -Force | Out-Null
+        Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', "`"$app`"")
+    }
+    Ok 'Listo: Wachdog esta activo. Su icono (una W) esta junto al reloj (o en la flechita ^).'
     Info 'Arranca solo al prender la PC y revisa el repo cada 30 minutos.'
     Info 'Clic derecho en el icono: Buscar ahora / Abrir carpeta / Pausar / Salir.'
 }
 
 function Desinstalar-Actualizador {
-    Titulo 'Quitando el actualizador automatico'
+    Titulo 'Quitando Wachdog'
     Detener-Actualizador
-    if ($EsWindows) { Remove-ItemProperty -Path $ClaveRun -Name $NombreRun -ErrorAction SilentlyContinue }
+    if ($EsWindows) { foreach ($v in @($NombreRun) + $NombresRunViejos) { Remove-ItemProperty -Path $ClaveRun -Name $v -ErrorAction SilentlyContinue } }
     $cfg = Leer-Config
-    if (Test-Path -LiteralPath $CarpetaConfig) { Remove-Item -LiteralPath $CarpetaConfig -Recurse -Force -ErrorAction SilentlyContinue }
-    Ok 'Actualizador quitado (y el token guardado, si habia).'
+    if (Test-Path -LiteralPath $CarpetaConfig) {
+        Set-Location ([IO.Path]::GetTempPath())      # no se puede borrar la carpeta en la que uno esta parado
+        Start-Sleep -Milliseconds 500
+        Get-ChildItem -LiteralPath $CarpetaConfig -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $CarpetaConfig -Recurse -Force -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $CarpetaConfig) { Info "Queda algo en $CarpetaConfig (probablemente Wachdog.exe abierto): borralo a mano si quieres." }
+    }
+    Ok 'Wachdog quitado (y el token guardado, si habia).'
     foreach ($k in $cfg.Clientes.Keys) { Info "Los videos siguen en: $(Join-Path $cfg.Clientes[$k] $k)  (borralos a mano si quieres)" }
 }
 
@@ -363,6 +384,7 @@ trap {
     Write-Host ''
     Write-Host "  ERROR: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host '  Puedes volver a correr el instalador: sigue donde se quedo.' -ForegroundColor Yellow
+    if ($Lanzador) { Read-Host '  Pulsa Enter para cerrar' | Out-Null }
     break
 }
 
@@ -383,18 +405,18 @@ if ($Actualizar) {
 
 Write-Host ''
 Write-Host '  ##########################################' -ForegroundColor Magenta
-Write-Host '  #     INSTALADOR DE VFX PARA RESOLUME    #' -ForegroundColor Magenta
+Write-Host '  #    WACHDOG  -  VFX PARA RESOLUME       #' -ForegroundColor Magenta
 Write-Host '  ##########################################' -ForegroundColor Magenta
 Write-Host ''
 Write-Host '    1 = Oasis  (Oasis VIP Club)'
 Write-Host '    2 = Zutros (Zutros Steak Bar & Lounge)'
-Write-Host '    3 = Quitar el actualizador automatico'
+Write-Host '    3 = Quitar Wachdog (el actualizador automatico)'
 if ($cfg.Clientes.Count) { Write-Host "    (ya instalado: $(@($cfg.Clientes.Keys) -join ', '))" -ForegroundColor DarkGray }
 Write-Host ''
 $Eleccion = "$Opcion".Trim()
 while ($Eleccion -notin '1', '2', '3') { $Eleccion = (Read-Host '  Elige 1, 2 o 3').Trim() }
 
-if ($Eleccion -eq '3') { Desinstalar-Actualizador; return }
+if ($Eleccion -eq '3') { Desinstalar-Actualizador; if ($Lanzador) { Read-Host '  Pulsa Enter para cerrar' | Out-Null }; return }
 
 $Cliente = @{ '1' = 'Oasis'; '2' = 'Zutros' }[$Eleccion]
 if (-not $Destino) {
@@ -424,7 +446,8 @@ Info '(o la carpeta entera a una capa vacia) a la composicion.'
 
 if (-not $SinActualizador) {
     Write-Host ''
-    $r = Read-Host '  Instalar el ACTUALIZADOR AUTOMATICO (revisa el repo cada 30 min y baja lo nuevo)? (S/n)'
+    $r = Read-Host '  Activar WACHDOG (revisa el repo cada 30 min y baja lo nuevo solo)? (S/n)'
     if ($r -notmatch '^[nN]') { Instalar-Actualizador $ref }
 }
 if ($EsWindows) { try { Start-Process explorer.exe $CarpetaFinal } catch {} }
+if ($Lanzador) { Write-Host ''; Read-Host '  Pulsa Enter para cerrar' | Out-Null }

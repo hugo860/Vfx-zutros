@@ -1,5 +1,5 @@
 <#
-  Actualizador automatico de VFX para Resolume  (icono junto al reloj de Windows)
+  WACHDOG - actualizador automatico de VFX para Resolume  (icono junto al reloj de Windows)
   -------------------------------------------------------------------------------
   Lo instala Instalar_VFX_Resolume.ps1 en %LOCALAPPDATA%\VFX_Resolume y arranca solo con Windows.
   Cada 30 minutos mira si el repo hugo860/Vfx-zutros tiene commits nuevos. Si los hay, corre
@@ -54,7 +54,7 @@ function Crear-Icono {
     $fuente = New-Object System.Drawing.Font('Arial', 17, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
     $fmt = New-Object System.Drawing.StringFormat
     $fmt.Alignment = 'Center'; $fmt.LineAlignment = 'Center'
-    $g.DrawString('V', $fuente, [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF 0, 1, 32, 32), $fmt)
+    $g.DrawString('W', $fuente, [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF 0, 1, 32, 32), $fmt)
     $g.Dispose()
     return [System.Drawing.Icon]::FromHandle($bmp.GetHicon())
 }
@@ -64,7 +64,7 @@ $Icono.Icon = Crear-Icono
 $Icono.Visible = $true
 
 function Estado([string]$t) {
-    $txt = "VFX Resolume: $t"
+    $txt = "Wachdog: $t"
     if ($txt.Length -gt 63) { $txt = $txt.Substring(0, 63) }
     $Icono.Text = $txt
 }
@@ -132,14 +132,14 @@ function Al-Terminar {
     if ($codigo -eq 0) {
         $c = [regex]::Match($texto, 'COMMIT ([0-9a-f]{40})')
         if ($c.Success -and $enUso -eq 0) { Set-Content -LiteralPath $ArchivoUltimo -Value $c.Groups[1].Value }
-        if ($nuevos) { Aviso 'VFX nuevos instalados' ("Se bajaron $($detalle -join ' y ') archivos. Ya estan en la carpeta de Resolume.") }
-        elseif ($script:Forzado) { Aviso 'VFX Resolume' 'Todo esta al dia.' }
+        if ($nuevos) { Aviso 'Wachdog: VFX nuevos' ("Se bajaron $($detalle -join ' y ') archivos. Ya estan en la carpeta de Resolume.") }
+        elseif ($script:Forzado) { Aviso 'Wachdog' 'Todo esta al dia.' }
         if ($enUso) { Estado "$enUso en uso: reintento luego" } else { Estado "al dia ($(Get-Date -Format 'HH:mm'))" }
     } else {
         $e = [regex]::Match($texto, 'ERROR (.+)')
         $msg = if ($e.Success) { $e.Groups[1].Value.Trim() } else { 'ver registro' }
         Estado 'error, reintento luego'
-        if ($script:Forzado) { Aviso 'VFX Resolume: no se pudo actualizar' $msg 'Warning' }
+        if ($script:Forzado) { Aviso 'Wachdog: no se pudo actualizar' $msg 'Warning' }
     }
 }
 
@@ -160,7 +160,7 @@ $Icono.ContextMenuStrip = $Menu
 
 function Abrir-Carpetas {
     $c = Clientes
-    if (-not $c.Count) { Aviso 'VFX Resolume' 'Todavia no instalaste nada. Corre el instalador.'; return }
+    if (-not $c.Count) { Aviso 'Wachdog' 'Todavia no instalaste nada. Abre Wachdog.exe y elige 1 o 2.'; return }
     foreach ($k in $c.Keys) { $p = Join-Path $c[$k] $k; if (Test-Path $p) { Start-Process explorer.exe $p } }
 }
 
@@ -199,7 +199,7 @@ $Inicio.Interval = 60 * 1000
 $Inicio.add_Tick({ $Inicio.Stop(); Revisar $false })
 
 Estado 'activo'
-Log 'Actualizador iniciado.'
+Log 'Wachdog iniciado.'
 $Reloj.Start(); $Vigia.Start(); $Inicio.Start()
 [System.Windows.Forms.Application]::Run($Contexto)
 $Icono.Dispose()

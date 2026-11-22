@@ -18,7 +18,20 @@ Documentos\Resolume Arena\Media\Oasis\Extras\     <- MP4, imágenes, logos, cód
 Documentos\Resolume Arena\Media\Zutros\  ...                                     (opción 2)
 ```
 
-### Forma rápida (PowerShell)
+### Wachdog.exe (lo más fácil)
+
+1. Descarga **[Wachdog.exe](https://github.com/hugo860/Vfx-zutros/raw/main/Wachdog.exe)** (70 KB).
+   Si el navegador dice que "no se descarga con frecuencia", elige *Conservar*.
+2. Doble clic. Como el .exe no está firmado, Windows puede mostrar **"Windows protegió su PC"**:
+   pulsa *Más información* → *Ejecutar de todas formas* (solo la primera vez).
+3. Elige **1** (Oasis), **2** (Zutros) o **3** (quitar Wachdog). Al final pulsa Enter para
+   activar Wachdog en segundo plano.
+
+Wachdog.exe se copia solo a `%LOCALAPPDATA%\VFX_Resolume`, arranca con Windows y deja su icono
+(una **W** rosada) junto al reloj. Es un lanzador pequeño: por dentro corre los mismos scripts de
+PowerShell de este repo con el PowerShell que ya trae Windows. Código en [`wachdog/`](wachdog/).
+
+### Sin .exe (PowerShell)
 
 Abre **PowerShell** (tecla Windows → escribe `powershell` → Enter), pega esta línea y Enter:
 
@@ -30,9 +43,9 @@ Como el repo es público, no pide token. Elige 1 (Oasis) o 2 (Zutros). Al final 
 quieres el **actualizador automático** (ver abajo): pulsa Enter para decir que sí.
 Si quieres los dos clientes, córrelo dos veces (una con 1 y otra con 2).
 
-### Actualizador automático (segundo plano)
+### Wachdog: actualizador automático (segundo plano)
 
-Es un icono junto al reloj de Windows (una bolita rosada con una **V**; si no se ve, está en la flechita `^`).
+Es un icono junto al reloj de Windows (una bolita rosada con una **W**; si no se ve, está en la flechita `^`).
 
 - Arranca solo al prender la PC y cada **30 minutos** revisa si el repo cambió.
 - Si hay algo nuevo, baja **solo** lo nuevo de lo que elegiste (Oasis, Zutros o los dos) y te avisa.
@@ -43,7 +56,7 @@ Es un icono junto al reloj de Windows (una bolita rosada con una **V**; si no se
 - Si un clip está abierto en Resolume, Windows no deja reemplazarlo: lo intenta de nuevo en la próxima revisión.
 - Se instala en `%LOCALAPPDATA%\VFX_Resolume` (no necesita permisos de administrador).
 
-**Para quitarlo:** corre la misma línea de PowerShell y elige **3**. Los videos no se borran.
+**Para quitarlo:** abre Wachdog.exe (o la línea de PowerShell) y elige **3**. Los videos no se borran.
 
 
 ### Pasos (con el .bat)
