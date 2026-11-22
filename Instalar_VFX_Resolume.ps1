@@ -1,4 +1,4 @@
-﻿<#
+<#
   Instalador de VFX para Resolume Arena
   -------------------------------------
   1 = Oasis   2 = Zutros
@@ -10,9 +10,10 @@
   - Si lo vuelves a correr, solo baja lo que falte o haya cambiado.
 
   Uso normal: doble clic en INSTALAR_VFX.bat
+  Desde PowerShell (repo publico, sin descargar nada antes):
+    irm https://raw.githubusercontent.com/hugo860/Vfx-zutros/main/Instalar_VFX_Resolume.ps1 | iex
   Uso avanzado:  .\Instalar_VFX_Resolume.ps1 -Opcion 1 -Destino "D:\VJ\Media"
 #>
-[CmdletBinding()]
 param(
     [string]$Opcion = '',            # 1 = Oasis, 2 = Zutros
     [string]$Destino = '',          # carpeta base; se le agrega \Oasis o \Zutros
@@ -92,11 +93,21 @@ function Probar-Token([string]$t) {
 }
 
 function Cabeceras([string]$t, [string]$accept = 'application/vnd.github+json') {
-    @{ Authorization = "Bearer $t"; Accept = $accept; 'X-GitHub-Api-Version' = '2022-11-28' }
+    $h = @{ Accept = $accept; 'X-GitHub-Api-Version' = '2022-11-28' }
+    if ($t) { $h.Authorization = "Bearer $t" }
+    return $h
+}
+
+function Repo-EsPublico {
+    try {
+        $r = Invoke-RestMethod -Uri $Api -Headers (Cabeceras '') -UseBasicParsing
+        return (-not $r.private)
+    } catch { return $false }
 }
 
 function Conseguir-Token {
     if ($OlvidarToken -and (Test-Path -LiteralPath $ArchivoToken)) { Remove-Item -LiteralPath $ArchivoToken -Force }
+    if (-not $Token -and (Repo-EsPublico)) { Ok 'El repo es publico: no hace falta token.'; return '' }
     $candidatos = @(
         @{ n = 'parametro -Token'; v = $Token },
         @{ n = 'variable VFX_GITHUB_TOKEN'; v = $env:VFX_GITHUB_TOKEN },
@@ -126,13 +137,17 @@ if ($EsWindows) { $c = Join-Path $env:SystemRoot 'System32\curl.exe'; if (Test-P
 elseif (Get-Command curl -CommandType Application -ErrorAction SilentlyContinue) { $CurlExe = (Get-Command curl -CommandType Application | Select-Object -First 1).Source }
 
 function Descargar-Archivo([string]$ruta, [string]$salida, [string]$t) {
-    $url = "$Api/contents/" + (($ruta -split '/' | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/') + "?ref=$Rama"
+    $rutaUrl = ($ruta -split '/' | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/'
+    if ($t) { $url = "$Api/contents/$($rutaUrl)?ref=$Rama" }
+    else    { $url = "https://raw.githubusercontent.com/$Repo/$Rama/$rutaUrl" }   # publico: sin limite de la API
     $tmp = "$salida.descargando"
     if ($CurlExe) {
         # Las cabeceras van en un archivo para que el token no se vea en la lista de procesos
         $hdr = [IO.Path]::GetTempFileName()
         try {
-            [IO.File]::WriteAllLines($hdr, @("Authorization: Bearer $t", 'Accept: application/vnd.github.raw', 'User-Agent: vfx-resolume-instalador'))
+            $lineas = @('Accept: application/vnd.github.raw', 'User-Agent: vfx-resolume-instalador')
+            if ($t) { $lineas += "Authorization: Bearer $t" }
+            [IO.File]::WriteAllLines($hdr, $lineas)
             & $CurlExe -fL --retry 3 --retry-delay 2 --progress-bar -H "@$hdr" -o $tmp $url
             if ($LASTEXITCODE -ne 0) { throw "curl fallo (codigo $LASTEXITCODE) bajando $ruta" }
         } finally { Remove-Item -LiteralPath $hdr -Force -ErrorAction SilentlyContinue }
@@ -173,7 +188,7 @@ trap {
     Write-Host ''
     Write-Host "  ERROR: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host '  Puedes volver a correr el instalador: sigue donde se quedo.' -ForegroundColor Yellow
-    exit 1
+    break
 }
 Write-Host ''
 Write-Host '  ##########################################' -ForegroundColor Magenta
