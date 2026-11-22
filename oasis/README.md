@@ -10,6 +10,8 @@ Loops para la pantalla de Oasis VIP Club (piscina, club, terraza y discoteca), p
 
 ## Escenas
 
+### Tanda 1: piscina, atardecer y club
+
 | Escena | Tipo | Idea | Cuándo usarla |
 |---|---|---|---|
 | `caustica` | 2D (shader) | Fondo de piscina turquesa con cáusticas, azulejos y rayos de sol. El logo flota y proyecta su sombra en el fondo. | Día / pool party |
@@ -17,6 +19,18 @@ Loops para la pantalla de Oasis VIP Club (piscina, club, terraza y discoteca), p
 | `neon_ondas` | 2D (shader) | Gotas que caen en el agua **a 120 BPM** (20 golpes por loop) con anillos neón cian, magenta y oro. El halo del logo cambia de color cada 4 golpes. | Discoteca, pico de la noche |
 | `logo_espejo` | 3D (three.js) | Logo extruido en cromo con la O encendida en colores de atardecer, flotando sobre agua espejo de noche, luces de club que barren y bokeh. Sin logo: un sol a rayas en un aro de cromo que gira. | Intro, entrada VIP |
 | `olas_3d` | 3D (three.js) | Mar tropical de noche con olas 3D, luna y horizonte turquesa. El logo flota sobre el horizonte y deja un camino de luz en el agua. | Lounge, ambiente |
+
+### Tanda 2: estética oasis
+
+![vista previa tanda 2](vista_previa_oasis.jpg)
+
+| Escena | Tipo | Idea | Cuándo usarla |
+|---|---|---|---|
+| `palmeras_atardecer` | 3D (three.js) | Palmeras en silueta que se mecen frente a un sol enorme, dunas en capas y la laguna reflejándolo todo. | Sunset, apertura de la noche |
+| `noche_desierto` | 3D (three.js) | Noche en el oasis: vía láctea, estrellas que titilan, luna creciente, luciérnagas y palmeras reflejadas en la laguna. | Lounge, cierre, momentos tranquilos |
+| `dunas` | 2D (shader) | Dunas doradas en la hora dorada, con paralaje entre capas, crestas con luz y sombra y arena que vuela con el viento. | Ambiente cálido, transiciones |
+| `arena_oro` | 2D (shader) | Arena vista desde arriba con ondas de viento, granos que brillan y una luz rasante que gira. Con logo: el logo en oro pulido en relieve, semienterrado. | Branding elegante, VIP |
+| `oasis_3d` | 3D (three.js) | Un oasis completo: laguna turquesa, palmeras verdes, dunas y la cámara dando una vuelta entera por la orilla. Con logo: logo 3D en oro flotando sobre el agua. | Intro, loop principal de pantalla |
 
 `neon_ondas` va a 120 BPM. Si el DJ pone otro tempo, en Resolume ajusta la velocidad del clip (BPM Sync → 120 en el clip y que siga el BPM master).
 
@@ -43,7 +57,7 @@ cd codigo && npm install
 python3 trace.py logos/oasis_logo_original.png   # regenera logos y logo_shapes.json (vectores para el 3D)
 python3 -m http.server 8765 &                     # sirve las escenas
 node render.mjs atardecer 1 still prueba 960 540  # 3 fotos de prueba
-./lote.sh caustica atardecer neon_ondas logo_espejo olas_3d   # render completo con y sin logo -> ../out/
+./lote.sh caustica atardecer neon_ondas logo_espejo olas_3d palmeras_atardecer noche_desierto dunas arena_oro oasis_3d   # render completo con y sin logo -> ../out/
 ```
 
 Cada escena es un HTML + JS en `codigo/escenas/`. Se ve en vivo en el navegador abriendo
