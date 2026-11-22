@@ -114,3 +114,78 @@ export function bokeh(scene, n, zona, colores, seed = 3) {
     b.sp.material.opacity = b.o * (0.6 + 0.4 * Math.sin(b.tw * p + b.ph * 2));
   });
 }
+
+// ---------- Tanda 2: estetica oasis ----------
+// Palmera procedural: tronco por anillos + hojas (raquis curvo con foliolos). Devuelve { grupo, mover(p) } con balanceo en loop.
+export function palmera({ alto = 9, curva = 1.5, hojas = 11, largo = 4.2, matTronco, matHoja, seed = 1 } = {}) {
+  let s = seed * 9301 + 49297; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const g = new THREE.Group();
+  const ctrl = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(curva * 0.25, alto * 0.35, 0),
+    new THREE.Vector3(curva * 0.7, alto * 0.7, 0), new THREE.Vector3(curva, alto, 0)]);
+  const N = 26;
+  for (let i = 0; i < N; i++) {
+    const a = ctrl.getPoint(i / N), b = ctrl.getPoint((i + 1) / N);
+    const r0 = 0.32 - 0.13 * i / N;
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(r0 * 0.9, r0, a.distanceTo(b) * 1.02, 10), matTronco);
+    seg.position.copy(a).add(b).multiplyScalar(0.5);
+    seg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+    seg.castShadow = true; g.add(seg);
+  }
+  const copa = new THREE.Group(); copa.position.copy(ctrl.getPoint(1)); g.add(copa);
+  const frondas = [];
+  for (let i = 0; i < hojas; i++) {
+    const L = largo * (0.75 + rnd() * 0.4), caida = 0.6 + rnd() * 0.7;
+    const pos = [], idx = [];
+    const M = 22;
+    for (let j = 0; j <= M; j++) {
+      const t = j / M;
+      const x = t * L, y = Math.sin(t * Math.PI * 0.55) * L * 0.28 - t * t * L * caida * 0.55;
+      const w = Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.55 * (1 - t * 0.4) + 0.03;
+      // foliolos: dientes alternos hacia abajo a cada lado
+      const caidaF = w * 0.55;
+      pos.push(x, y, 0,  x + 0.12, y - caidaF, w,  x + 0.12, y - caidaF, -w);
+      if (j > 0) { const k = j * 3, q = (j - 1) * 3;
+        idx.push(q, k, k + 1, q, k + 1, q + 1, q, q + 2, k + 2, q, k + 2, k); }
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx); geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, matHoja); m.castShadow = true;
+    const piv = new THREE.Group(); piv.add(m);
+    piv.rotation.y = i / hojas * TAU + rnd() * 0.3; piv.rotation.z = (rnd() - 0.3) * 0.5;
+    copa.add(piv);
+    frondas.push({ piv, z0: piv.rotation.z, ph: rnd() * TAU, f: 1 + Math.floor(rnd() * 3) });
+  }
+  const fase = rnd() * TAU;
+  return { grupo: g, mover: p => {
+    copa.rotation.z = 0.05 * Math.sin(p + fase); copa.rotation.x = 0.04 * Math.sin(2 * p + fase);
+    frondas.forEach(f => f.piv.rotation.z = f.z0 + 0.07 * Math.sin(f.f * p + f.ph));
+  } };
+}
+
+// Agua espejo con ondulacion (Reflector con shader propio). tinte = color de multiplicacion, fuerza = brillo del reflejo
+export async function aguaEspejo(geo, { tinte = 0x9fb8d8, fuerza = 0.45, onda = 0.006, base = [0.004, 0.008, 0.02] } = {}) {
+  const { Reflector } = await import('three/addons/objects/Reflector.js');
+  const RS = Reflector.ReflectorShader;
+  const shader = {
+    name: 'Agua', uniforms: { ...THREE.UniformsUtils.clone(RS.uniforms), p: { value: 0 } },
+    vertexShader: RS.vertexShader.replace('varying vec4 vUv;', 'varying vec4 vUv; varying vec3 vPos;')
+      .replace('vUv = textureMatrix * vec4( position, 1.0 );', 'vUv = textureMatrix * vec4( position, 1.0 ); vPos = position;'),
+    fragmentShader: `
+      uniform vec3 color; uniform sampler2D tDiffuse; uniform float p;
+      varying vec4 vUv; varying vec3 vPos;
+      #include <logdepthbuf_pars_fragment>
+      void main() {
+        #include <logdepthbuf_fragment>
+        vec2 q = vPos.xy; vec2 d = vec2(0.);
+        d += vec2(sin(q.y * 1.7 + p * 2.), cos(q.x * 1.3 - p)) * 0.6;
+        d += vec2(sin(q.y * 4.1 - q.x * 1.1 - p * 3.), cos(q.x * 3.7 + q.y * 0.9 + p * 4.)) * 0.3;
+        d += vec2(sin(q.y * 9.3 + p * 5.), sin(q.x * 8.1 - p * 6.)) * 0.12;
+        vec4 u = vUv; u.xy += d * ${onda.toFixed(4)} * u.w * exp(-u.w / 30.);
+        vec4 b = texture2DProj(tDiffuse, u);
+        gl_FragColor = vec4(b.rgb * color * ${fuerza.toFixed(3)} + vec3(${base.join(',')}), 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }` };
+  const W2 = Math.min(W, 1920), H2 = Math.min(H, 1080);
+  return new Reflector(geo, { textureWidth: W2, textureHeight: H2, color: tinte, shader });
+}
