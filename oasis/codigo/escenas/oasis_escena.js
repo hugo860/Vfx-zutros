@@ -43,7 +43,7 @@ export async function oasis(modo) {
       c = mix(c, vec3(0.30, 0.06, 0.22), smoothstep(0.2, 0.55, y));
       c = mix(c, vec3(0.05, 0.02, 0.08), smoothstep(0.5, 1.0, y));
       // nubes alargadas
-      float cl = n(vec2(q.x * 0.02 - p / TAU * 2., q.y * 0.25)) * n(vec2(q.x * 0.05 + 3., q.y * 0.4));
+      float cl = n(vec2(q.x * 0.02 + 0.8 * sin(p), q.y * 0.25)) * n(vec2(q.x * 0.05 + 3., q.y * 0.4));
       c = mix(c, vec3(1.0, 0.5, 0.35) * 0.9, smoothstep(0.35, 0.7, cl) * smoothstep(0.05, 0.25, y) * smoothstep(0.7, 0.3, y) * 0.5);
       // sol
       vec2 s = q - vec2(0., 9.);
