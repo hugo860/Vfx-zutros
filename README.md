@@ -17,7 +17,17 @@ Documentos\Resolume Arena\Media\Oasis     (opción 1)
 Documentos\Resolume Arena\Media\Zutros    (opción 2)
 ```
 
-### Pasos
+### Forma rápida (PowerShell)
+
+Abre **PowerShell** (tecla Windows → escribe `powershell` → Enter), pega esta línea y Enter:
+
+```powershell
+irm https://raw.githubusercontent.com/hugo860/Vfx-zutros/main/Instalar_VFX_Resolume.ps1 | iex
+```
+
+Como el repo es público, no pide token. Elige 1 (Oasis) o 2 (Zutros) y listo.
+
+### Pasos (con el .bat)
 
 1. Descarga estos dos archivos y ponlos **juntos en la misma carpeta** (por ejemplo el Escritorio):
    - [`INSTALAR_VFX.bat`](INSTALAR_VFX.bat)
@@ -28,7 +38,7 @@ Documentos\Resolume Arena\Media\Zutros    (opción 2)
    *Más información* → *Ejecutar de todas formas*.
 3. Escribe **1** (Oasis) o **2** (Zutros) y Enter.
 4. Pulsa Enter para usar la carpeta de Resolume, o escribe otra (por ejemplo `D:\VJ`).
-5. La primera vez te pide un **token de GitHub** (el repo es privado). Ver abajo.
+5. Solo si el repo vuelve a ser privado te pide un **token de GitHub**. Ver abajo.
 6. Al terminar se abre la carpeta. En Resolume: panel **Files** → ve a
    `Documentos\Resolume Arena\Media\Oasis` (o `Zutros`) y arrastra los clips o la carpeta
    entera a la composición.
@@ -36,7 +46,7 @@ Documentos\Resolume Arena\Media\Zutros    (opción 2)
 Si se corta el internet, vuelve a correrlo: sigue donde se quedó. Cuando se suban videos
 nuevos al repo, córrelo otra vez y solo baja lo nuevo o lo que cambió.
 
-### Crear el token de GitHub (una sola vez)
+### Crear el token de GitHub (solo si el repo es privado)
 
 1. Entra a <https://github.com/settings/personal-access-tokens/new> (con tu cuenta).
 2. **Token name**: `Resolume PC`. **Expiration**: la que quieras (por ejemplo 1 año).
