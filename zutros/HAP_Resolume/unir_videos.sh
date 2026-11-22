@@ -1,0 +1,10 @@
+#!/bin/sh
+cd "$(dirname "$0")"
+cat "Zutros_brasas_LOGO_HAP.mov.parte00" "Zutros_brasas_LOGO_HAP.mov.parte01" > "Zutros_brasas_LOGO_HAP.mov" && rm "Zutros_brasas_LOGO_HAP.mov.parte00" "Zutros_brasas_LOGO_HAP.mov.parte01"
+cat "Zutros_deco_LOGO_HAP.mov.parte00" "Zutros_deco_LOGO_HAP.mov.parte01" "Zutros_deco_LOGO_HAP.mov.parte02" > "Zutros_deco_LOGO_HAP.mov" && rm "Zutros_deco_LOGO_HAP.mov.parte00" "Zutros_deco_LOGO_HAP.mov.parte01" "Zutros_deco_LOGO_HAP.mov.parte02"
+cat "Zutros_floral_LOGO_HAP.mov.parte00" "Zutros_floral_LOGO_HAP.mov.parte01" "Zutros_floral_LOGO_HAP.mov.parte02" > "Zutros_floral_LOGO_HAP.mov" && rm "Zutros_floral_LOGO_HAP.mov.parte00" "Zutros_floral_LOGO_HAP.mov.parte01" "Zutros_floral_LOGO_HAP.mov.parte02"
+cat "Zutros_humo_vino_LOGO_HAP.mov.parte00" "Zutros_humo_vino_LOGO_HAP.mov.parte01" "Zutros_humo_vino_LOGO_HAP.mov.parte02" > "Zutros_humo_vino_LOGO_HAP.mov" && rm "Zutros_humo_vino_LOGO_HAP.mov.parte00" "Zutros_humo_vino_LOGO_HAP.mov.parte01" "Zutros_humo_vino_LOGO_HAP.mov.parte02"
+cat "Zutros_logo_luz_LOGO_HAP.mov.parte00" "Zutros_logo_luz_LOGO_HAP.mov.parte01" > "Zutros_logo_luz_LOGO_HAP.mov" && rm "Zutros_logo_luz_LOGO_HAP.mov.parte00" "Zutros_logo_luz_LOGO_HAP.mov.parte01"
+cat "Zutros_marmol_LOGO_HAP.mov.parte00" "Zutros_marmol_LOGO_HAP.mov.parte01" > "Zutros_marmol_LOGO_HAP.mov" && rm "Zutros_marmol_LOGO_HAP.mov.parte00" "Zutros_marmol_LOGO_HAP.mov.parte01"
+cat "Zutros_pines_LOGO_HAP.mov.parte00" "Zutros_pines_LOGO_HAP.mov.parte01" > "Zutros_pines_LOGO_HAP.mov" && rm "Zutros_pines_LOGO_HAP.mov.parte00" "Zutros_pines_LOGO_HAP.mov.parte01"
+cat "Zutros_seda_LOGO_HAP.mov.parte00" "Zutros_seda_LOGO_HAP.mov.parte01" > "Zutros_seda_LOGO_HAP.mov" && rm "Zutros_seda_LOGO_HAP.mov.parte00" "Zutros_seda_LOGO_HAP.mov.parte01"

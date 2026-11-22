@@ -1,2 +1,3 @@
 *.mov
+!zutros/HAP_Resolume/*.mov
 __pycache__/
