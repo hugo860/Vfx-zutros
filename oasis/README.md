@@ -32,6 +32,14 @@ Loops para la pantalla de Oasis VIP Club (piscina, club, terraza y discoteca), p
 | `arena_oro` | 2D (shader) | Arena vista desde arriba con ondas de viento, granos que brillan y una luz rasante que gira. Con logo: el logo en oro pulido en relieve, semienterrado. | Branding elegante, VIP |
 | `oasis_3d` | 3D (three.js) | Un oasis completo: laguna turquesa, palmeras verdes, dunas y la cámara dando una vuelta entera por la orilla. Con logo: logo 3D en oro flotando sobre el agua. | Intro, loop principal de pantalla |
 
+### Extra: Miami neón
+
+![miami neon](vista_previa_miami.jpg)
+
+| Escena | Tipo | Idea | Cuándo usarla |
+|---|---|---|---|
+| `miami_neon` | 3D (three.js) | Estilo del flyer: atardecer naranja-magenta-morado, skyline con ventanas encendidas, palmeras en silueta, la bahía reflejando la ciudad, un helicóptero cruzando y el logo con halo neón rosado. | Noches temáticas, flyers animados, entrada |
+
 `neon_ondas` va a 120 BPM. Si el DJ pone otro tempo, en Resolume ajusta la velocidad del clip (BPM Sync → 120 en el clip y que siga el BPM master).
 
 ## Archivos
@@ -57,7 +65,7 @@ cd codigo && npm install
 python3 trace.py logos/oasis_logo_original.png   # regenera logos y logo_shapes.json (vectores para el 3D)
 python3 -m http.server 8765 &                     # sirve las escenas
 node render.mjs atardecer 1 still prueba 960 540  # 3 fotos de prueba
-./lote.sh caustica atardecer neon_ondas logo_espejo olas_3d palmeras_atardecer noche_desierto dunas arena_oro oasis_3d   # render completo con y sin logo -> ../out/
+./lote.sh caustica atardecer neon_ondas logo_espejo olas_3d palmeras_atardecer noche_desierto dunas arena_oro oasis_3d miami_neon   # render completo con y sin logo -> ../out/
 ```
 
 Cada escena es un HTML + JS en `codigo/escenas/`. Se ve en vivo en el navegador abriendo
